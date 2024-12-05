@@ -6,7 +6,10 @@ import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import br.com.curso.data.vo.v1.PersonVO;
 import br.com.curso.excecao.ResourceNotFoundException;
+import br.com.curso.mapper.DozerMapper;
+import br.com.curso.mapper.custom.PersonMapper;
 import br.com.curso.model.Person;
 import br.com.curso.repositories.PersonRepository;
 
@@ -18,41 +21,59 @@ public class PersonServices {
 	@Autowired
 	PersonRepository repository;
 	
-	public Person findById(Long id) {
+	@Autowired
+	PersonMapper mapper;
+	
+	
+	public PersonVO findById(Long id) {
 		logger.info("Encontre uma pessoa.");
-		return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Nenhum registro encontrado"));
-		//return person;
+		var entity = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Nenhum registro encontrado"));
+		return DozerMapper.parseObject(entity,  PersonVO.class);
+		//return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Nenhum registro encontrado"));
+		//return PersonVO;
 	}
 	
-	public List<Person> findAll() {
+	public List<PersonVO> findAll() {
 		logger.info("Encontre todas as pessoas.");
-		/*List<Person> persons = new ArrayList<>();
+		/*List<PersonVO> PersonVOs = new ArrayList<>();
 		for (int i = 0; i < 8; i++) {
-			Person person = mockPerson(i);
-			persons.add(person);
+			PersonVO PersonVO = mockPersonVO(i);
+			PersonVOs.add(PersonVO);
 		}*/
-		return repository.findAll();
-		//return persons;
+		return DozerMapper.parseListObjects( repository.findAll(),  PersonVO.class);
+		//return repository.findAll();
+		//return PersonVOs;
 		
 	}
 
 	/*
-	 * private Person mockPerson(int i) { Person person = new Person();
-	 * person.setId(counter.incrementAndGet()); person.setPrimeiroNome("Hélcio");
-	 * person.setUltimoNome("Rodrigues"); person.setEndereco("Quadra 01 lote 01");
-	 * person.setGenero("M");
+	 * private PersonVO mockPersonVO(int i) { PersonVO PersonVO = new PersonVO();
+	 * PersonVO.setId(counter.incrementAndGet()); PersonVO.setPrimeiroNome("Hélcio");
+	 * PersonVO.setUltimoNome("Rodrigues"); PersonVO.setEndereco("Quadra 01 lote 01");
+	 * PersonVO.setGenero("M");
 	 * 
-	 * return person; }
+	 * return PersonVO; }
 	 */
 	
 
-	public Person create(Person person) {
+	public PersonVO create(PersonVO person) {
 		logger.info("Crie uma pessoa.");
-		return repository.save(person);
-		//return person;
+		var entity =  DozerMapper.parseObject(person,  Person.class);
+		var vo = DozerMapper.parseObject( repository.save(entity),  PersonVO.class);
+		return vo;
+		//return repository.save(PersonVO);
+		//return PersonVO;
 	}
 	
-	public Person update(Person person) {
+	/*
+	 * public PersonVOV2 createV2(PersonVOV2 person) {
+	 * logger.info("Crie uma pessoa."); var entity =
+	 * mapper.convertVoToEntity(person); var vo = mapper.convertEntityToVo(
+	 * repository.save(entity)); return vo; //return repository.save(PersonVO);
+	 * //return PersonVO; }
+	 */
+	
+	public PersonVO update(PersonVO person) {
 		logger.info("Atualize uma pessoa.");
 		var entity = repository.findById(person.getId()).orElseThrow(() -> new ResourceNotFoundException("Nenhum registro encontrado"));
 		
@@ -61,8 +82,10 @@ public class PersonServices {
 		entity.setEndereco(person.getEndereco());
 		entity.setGenero(person.getGenero());
 		
-		return repository.save(person);
-		//return person;
+		var vo = DozerMapper.parseObject( repository.save(entity),  PersonVO.class);
+		return vo;
+		//return repository.save(PersonVO);
+		//return PersonVO;
 	}
 	
 	public void delete(Long id) {
